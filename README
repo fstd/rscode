@@ -1,4 +1,4 @@
-This is rscode, version 0.1.1
+This is rscode, version 0.2.0
 En- or decodes nonprintable characters like rsync does for filenames.
 
 Quickstart:

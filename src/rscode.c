@@ -28,6 +28,7 @@
 static bool s_decode;
 static FILE *s_inpstr;
 static bool s_nulterm;
+static bool s_encspace;
 
 
 static void encode(const char *s);
@@ -45,7 +46,7 @@ process_args(int *argc, char ***argv)
 {
 	char *a0 = (*argv)[0];
 
-	for (int ch; (ch = getopt(*argc, *argv, "edf:0hV")) != -1;) {
+	for (int ch; (ch = getopt(*argc, *argv, "edf:0hVs")) != -1;) {
 		switch (ch) {
 		case 'e':
 		case 'd':
@@ -59,6 +60,9 @@ process_args(int *argc, char ***argv)
 			break;
 		case '0':
 			s_nulterm = true;
+			break;
+		case 's':
+			s_encspace = true;
 			break;
 		case 'h':
 			usage(stdout, a0, EXIT_SUCCESS);
@@ -96,7 +100,7 @@ static void
 encode(const char *s)
 {
 	while (*s) {
-		if (iseseq(s, false) || !isprint(*s) || !isascii(*s))
+		if (iseseq(s, false) || !isprint(*s) || !isascii(*s) || (s_encspace && *s == ' '))
 			fprintf(stdout, "\\#%03o", (unsigned char)*s);
 		else
 			putchar(*s);
@@ -187,6 +191,7 @@ usage(FILE *str, const char *a0, int ec)
 	I("\t-0: When encoding, expect input strings to be \\0-terminated");
 	I("\t    rather than by \\n.  When decoding, terminate output strings");
 	I("\t    by \\0 instead of \\n");
+	I("\t-s: Also encode space (0x20) instead of leaving it as-is");
 	I("\t-h: Display this usage statement and terminate");
 	I("\t-V: Print version information");
 	I("");
