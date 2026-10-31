@@ -9,3 +9,5 @@ rm -rf m4
 rm -f config.h.in
 rm -f configure
 rm -f src/Makefile.in
+rm -f 'config.in.h~'
+rm -f 'configure~'

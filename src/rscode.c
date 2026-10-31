@@ -2,7 +2,7 @@
  * rscode - en- or decode funky chars in filenames like rsync would do
  * See README for contact-, COPYING for license information.  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -11,7 +11,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <errno.h>
 
 #include <err.h>
 
@@ -37,7 +36,6 @@ static int isodigit(int c);
 static bool iseseq(const char *s, bool strict);
 static int parseeseq(const char *s);
 static void process_args(int *argc, char ***argv);
-static void init(int *argc, char ***argv);
 static void usage(FILE *str, const char *a0, int ec);
 
 
@@ -88,12 +86,6 @@ process_args(int *argc, char ***argv)
 		warnx("warning: ignoring -0 because arguments are provided");
 		s_nulterm = false;
 	}
-}
-
-static void
-init(int *argc, char ***argv)
-{
-	process_args(argc, argv);
 }
 
 static void
@@ -182,9 +174,9 @@ usage(FILE *str, const char *a0, int ec)
 	I("");
 	I("Converts funky chars the way rsync does for filenames.");
 	I("The encoding process translates nonprintable characters");
-	I("  into ``\\#ooo'', were ``ooo'' is the octal codepoint value.");
+	I("  into ``\\#ooo'', where ``ooo'' is the octal codepoint value.");
 	I("  In literal ``\\#ooo'' tokens, the backslash is in turn encoded");
-	I("  in the same way, i.e. ''\\#123'' becomes ``\\#134#123'', even if");
+	I("  in the same way, i.e. ``\\#123'' becomes ``\\#134#123'', even if");
 	I("  ``ooo'' wasn't a legitimate octal number (i.e. may contain 8, 9)");
 	I("The decoding process does the inverse operation.");
 	I("");
@@ -203,7 +195,7 @@ usage(FILE *str, const char *a0, int ec)
 	I("If arguments are given, we ignore stdin and use the args as input");
 	I("");
 	I("Version: " PACKAGE_VERSION);
-	I("(C) 2014, Timo Buhrmester (contact: #fstd @ irc.freenode.org)");
+	I("(C) 2014, Timo Buhrmester (contact: #fstd @ irc.libera.chat)");
 	#undef I
 	exit(ec);
 }
@@ -212,7 +204,7 @@ usage(FILE *str, const char *a0, int ec)
 int
 main(int argc, char **argv)
 {
-	init(&argc, &argv);
+	process_args(&argc, &argv);
 
 	void (*encdec)(const char *) = s_decode ? decode : encode;
 
@@ -253,7 +245,7 @@ main(int argc, char **argv)
 	}
 
 	if (ferror(s_inpstr))
-		err(EXIT_FAILURE, "fgetc");
+		err(EXIT_FAILURE, "getc");
 
 	if (bufpos) {
 		warnx("warning: terminator missing on last input entry");
