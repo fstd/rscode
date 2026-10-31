@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.72])
-AC_INIT([rscode],[0.2.0],[fstd+rscode@pr0.tips])
+AC_INIT([rscode],[0.3.0],[fstd+rscode@pr0.tips])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/rscode.c])
 AC_CONFIG_HEADERS([config.h])
