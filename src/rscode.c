@@ -100,10 +100,11 @@ static void
 encode(const char *s)
 {
 	while (*s) {
-		if (iseseq(s, false) || !isprint(*s) || !isascii(*s) || (s_encspace && *s == ' '))
-			fprintf(stdout, "\\#%03o", (unsigned char)*s);
+		unsigned char c = (unsigned char)*s;
+		if (iseseq(s, false) || c < 0x20 || c > 0x7e || (s_encspace && c == ' '))
+			fprintf(stdout, "\\#%03o", c);
 		else
-			putchar(*s);
+			putchar(c);
 
 		s++;
 	}
@@ -143,16 +144,19 @@ iseseq(const char *s, bool strict)
 	if (*s != '\\')
 		return false;
 
-	size_t len = strlen(s);
-	if (len < 5)
-		return false;
+// each element is only read after the previous one was verified to not be NUL
+//	size_t len = strlen(s);
+//	if (len < 5)
+//		return false;
 
 	if (s[1] != '#')
 		return false;
 	
 	int (*fn)(int) = strict ? isodigit : isdigit;
 
-	return fn(s[2]) && fn(s[3]) && fn(s[4]);
+	if (strict && s[2] >= '4')
+		return false;
+	return fn((unsigned char)s[2]) && fn((unsigned char)s[3]) && fn((unsigned char)s[4]);
 }
 
 /* Parse the rsync-style escape sequence at the beginning of ``s''.
@@ -174,7 +178,7 @@ usage(FILE *str, const char *a0, int ec)
 	I("==================================================================");
 	I("==           rscode - en/decode filenames rsync-style           ==");
 	I("==================================================================");
-	fprintf(str, "usage: %s [-de0hV -f <file>] [ <input> ... ]\n", a0);
+	fprintf(str, "usage: %s [-de0hVs -f <file>] [ <input> ... ]\n", a0);
 	I("");
 	I("Converts funky chars the way rsync does for filenames.");
 	I("The encoding process translates nonprintable characters");
@@ -218,6 +222,9 @@ main(int argc, char **argv)
 			argv++;
 		}
 
+		if (fflush(stdout) || ferror(stdout))
+			err(EXIT_FAILURE, "write");
+
 		return EXIT_SUCCESS;
 	}
 
@@ -230,7 +237,7 @@ main(int argc, char **argv)
 
 	int c;
 	while ((c = getc(s_inpstr)) != EOF) {
-		if (bufpos >= bufsz) {
+		if (bufpos+1 >= bufsz) {
 			char *nbuf = realloc(buf, bufsz *= 2);
 			if (!nbuf)
 				err(EXIT_FAILURE, "realloc");
@@ -253,6 +260,9 @@ main(int argc, char **argv)
 		buf[bufpos] = '\0';
 		encdec(buf);
 	}
+
+	if (fflush(stdout) || ferror(stdout))
+		err(EXIT_FAILURE, "write");
 
 	return EXIT_SUCCESS;
 }
